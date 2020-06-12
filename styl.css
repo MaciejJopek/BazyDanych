@@ -1,0 +1,70 @@
+body{
+    margin-bottom: 10%;
+}
+h2.naglowek {
+    text-align: center;
+  }
+.uklad1{
+    text-align: center;
+    margin-top: 10%;
+
+  }
+.wybor
+  {   
+        display: inline-block;
+        margin: auto;
+        width: 20%;
+
+  }
+.nav-link {
+    padding-right: .5rem !important;
+    padding-left: .5rem !important;
+  }  
+.napis_biblioteka{
+    font-family: 'Cormorant', serif;
+    text-align: center;
+    font-size: 100px;
+}
+div.opakowanie{
+    margin-top: 2%;
+    margin-left: 20%;
+    margin-right: 20%;
+    display: block;
+}
+div.opakowanie_login{
+    margin-top: 2%;
+    margin-left: 30%;
+    margin-right: 30%;
+    display: block;
+}
+div.opakowanie_czytelnicy{
+    margin-top: 2%;
+    margin-left: 10%;
+    margin-right: 10%;
+    display: block;
+}
+div.opakowanie_lista_egzemplarzy{
+    margin-top: 2%;
+    margin-left: 5%;
+    margin-right:5%;
+    display: block;
+}
+footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+}
+#tabela{
+    margin-top: 2%;
+}
+#dodaj_czytelnika{
+    margin-left: 2%;
+    margin-top:2%;
+}
+#naglowek_center {
+    margin: 0 auto;
+    text-align: center;
+  }
+  

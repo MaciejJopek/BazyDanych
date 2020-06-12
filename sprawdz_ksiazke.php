@@ -1,15 +1,15 @@
 <?php
 session_start();
-include_once 'sanityzacja.php';
-if ((isset($_SESSION['zalogowany'])) && ($_SESSION['zalogowany']==true)){
-    header('Location:panel.php');
+include_once 'unsety.php';
+if(!isset($_SESSION['zalogowany'])){
+    header('Location:index.php');
     exit();
 }
+include_once 'sanityzacja.php';
 if(isset($_POST['wyszukanie2'])){
     $_SESSION['zapytanie'] = sanityzacja($_POST['wyszukanie2']);
-    header('Location:wynik.php');
+    header('Location:wynik_bibliotekarz.php');
 }
-
 ?>
 <!DOCTYPE HTML>
 <html lang="pl">
@@ -28,12 +28,12 @@ if(isset($_POST['wyszukanie2'])){
 </head>
 <body>
 <?php 
-include 'nav_index.php';
+include 'nav.php';
 ?>
 <div class="opakowanie">
     <div class="container" >
 		<div>
-			<h1 class="napis_biblioteka">Biblioteka</h1>
+			<h5 class="napis_biblioteka">Wyszukiwarka </h5>
 		</div>
 		<form action="" method="post">
 			<div class="p-1 bg-light rounded rounded-pill shadow-sm mb-4" style="margin-top:5%">
