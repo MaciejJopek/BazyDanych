@@ -9,10 +9,10 @@
           <a class="nav-link" href="nowa_ksiazka.php">Nowa ksiązka<span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item active">
-          <a class="nav-link" href="nowy_egzemplarz.php">Nowy egzemplarz<span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="zarz_czytelnikami.php">Zarządzanie czytelnikami</a>
         </li>
         <li class="nav-item active">
-          <a class="nav-link" href="zarz_czytelnikami.php">Zarządzanie czytelnikami</a>
+          <a class="nav-link" href="zarz_dzialami.php">Zarządznie działami</a>
         </li>
       </ul>
       <ul class="navbar-nav ml-auto">

@@ -9,6 +9,7 @@ require_once "connect.php";
 mysqli_report(MYSQLI_REPORT_STRICT);
 try{
     $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+    $polaczenie->query("SET NAMES 'utf8'");
     if($polaczenie->connect_errno!=0){
         throw new Exception(mysqli_connect_errno());
     }
@@ -46,14 +47,10 @@ if(isset($_POST['telefon'])){
     $adres= sanityzacja($_POST['adres']);
     $telefon = sanityzacja($_POST['telefon']);
 
-    if(!ctype_digit((string)$telefon) or strlen($telefon)!=9){
+    if(!ctype_digit((string)$telefon)){
         $walidacja = false;
-        if (strlen($telefon)!=9){
-            $_SESSION['Blad'] = "Numer telefonu musi posiadac 9 cyfr";
-        }
-        else{
             $_SESSION['Blad'] = "Numer telefon może zawierać tylko cyfry";
-        }
+
     }
     if($walidacja==true)
     {

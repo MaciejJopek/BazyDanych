@@ -38,7 +38,7 @@ include 'nav_index.php';
 		<form action="" method="post">
 			<div class="p-1 bg-light rounded rounded-pill shadow-sm mb-4" style="margin-top:5%">
 				<div class="input-group">
-				<input type="search" name="wyszukanie2" placeholder="Czego szukasz?" aria-describedby="button-addon1" class="form-control border-0 bg-light">
+				<input type="search" name="wyszukanie2" placeholder="Czego szukasz? Możesz zostawić puste pole wyszukiwania w celu uzyskania wszystkich ksiązek znajdujących sie w bibliotece" aria-describedby="button-addon1" class="form-control border-0 bg-light">
 				<div class="input-group-append">
 					<button id="button-addon1" type="submit" class="btn btn-link text-primary"><i class="fa fa-search"></i></button>
 				</div>

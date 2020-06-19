@@ -10,6 +10,7 @@ require_once "connect.php";
 mysqli_report(MYSQLI_REPORT_STRICT);
 try{
      $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+     $polaczenie->query("SET NAMES 'utf8'");
         if($polaczenie->connect_errno!=0){
             throw new Exception(mysqli_connect_errno());
         }
@@ -23,30 +24,63 @@ try{
     catch(Exception $error){
         echo '<span>Błąd serwera, nie można połączyć się z bazą danych';
     }
-if(isset($_POST['id_czytelnik'])){
-    $id_czytelnik = sanityzacja($_POST['id_czytelnik']);
+if(isset($_POST['usun'])){
+    $id_czytelnik = sanityzacja($_POST['usun']);
 
-    try{
-        if ($polaczenie->query(
-        sprintf("DELETE FROM czytelnik WHERE id_czytelnik='%d'",
-        mysqli_real_escape_string($polaczenie,$id_czytelnik)
-        )))
-        {   
-            echo "<meta http-equiv='refresh' content='0'>";
-        }
-    else{
-        throw new Exception($polaczenie->error);
-        }
+    $rezultat2 = $polaczenie->query(
+        sprintf("SELECT id_czytelnik,id_wypozyczenie,kara,data_zwrotu FROM czytelnik JOIN wypozyczenie ON czytelnik_id=id_czytelnik WHERE id_czytelnik ='%d';",
+        mysqli_real_escape_string($polaczenie,$id_czytelnik)));
+    $rezultat3 = $polaczenie->query(
+            sprintf("SELECT id_czytelnik,kara FROM czytelnik WHERE id_czytelnik ='%d';",
+            mysqli_real_escape_string($polaczenie,$id_czytelnik)));
+    
+    
+    $walidacja = $rezultat2->num_rows;
+    $walidacja2 = $rezultat2->num_rows;//odpowiada za kare
+
+    $wiersz3 = $rezultat3 -> fetch_assoc();
+    $kara = $wiersz3['kara'];
+    if ($kara>=0){
+        $_SESSION['Nie_mozna_usunac'] = 'Nie można usunąć czytelnika, musi uregulować zaległości';
     }
-    catch(Exception $error){
-        $blad = $polaczenie->errno;
-        if ($blad = 1451){
-            $_SESSION['BladUsuwania']= 'Przepraszamy, nie można usunąć czytelnika, posiada on wypożyczoną książkę';
+    if ($walidacja==0 and $kara==0){
+        if ($polaczenie->query(
+            sprintf("DELETE From czytelnik WHERE id_czytelnik='%d'",
+             mysqli_real_escape_string($polaczenie,$id_czytelnik)
+             )))
+             {
+
+                $_SESSION['Done_usuniecie_czytelnika'] = 'Usunięto czytelnika';
+                echo "<meta http-equiv='refresh' content='0'>";
+             }
+    }
+    if ($walidacja>0 and $kara==0){
+        $temp = TRUE;
+        $wiersz2 = $rezultat2 -> fetch_assoc();
+        while($row = mysqli_fetch_assoc($rezultat2)){
+            if ($row['data_zwrotu']==NULL){
+                $temp = FALSE;
+                $_SESSION['Nie_mozna_usunac'] = 'Nie można usunąć czytelnika, który ma wyporzyczną książkę';
+            }
         }
-            else{
-                echo "Przepraszamy, napotkano problem z bazą danych";
+
+            if ($temp!=FALSE){
+                if ($polaczenie->query(
+                    sprintf("DELETE From wypozyczenie WHERE czytelnik_id='%d'",
+                        mysqli_real_escape_string($polaczenie,$id_czytelnik)
+                        )))
+                    {
+                        $polaczenie->query(
+                            sprintf("DELETE From czytelnik WHERE id_czytelnik='%d'",
+                             mysqli_real_escape_string($polaczenie,$id_czytelnik)
+                        ));
+                        $_SESSION['Done_usuniecie_czytelnika'] = 'Usunięto czytelnika';
+                        echo "<meta http-equiv='refresh' content='0'>";
+
+                    }
             }
     }
+    
     $polaczenie->close();
 }
 if(isset($_POST['aktualizacja'])){
@@ -57,9 +91,9 @@ if(isset($_POST['historia'])){
     $_SESSION['kto'] = sanityzacja($_POST['historia']);
     header('Location:historia_wyporzyczen.php');
 }
-if(isset($_POST['zwrot'])){
-    $_SESSION['kto'] = sanityzacja($_POST['zwrot']);
-    header('Location:zwrot.php');
+if(isset($_POST['pieniadze'])){
+    $_SESSION['kto'] = sanityzacja($_POST['pieniadze']);
+    header('Location:usun_kare.php');
 }
 ?>
 <!DOCTYPE HTML>
@@ -93,15 +127,33 @@ include 'nav.php';
         <input class="form-control mb-4" id="tableSearch" type="text"
             placeholder="Podaj dowolne dane czytenika" style="margin-top:2%;" >
         <?php
-            if (isset($_SESSION['BladUsuwania']))
+            if (isset($_SESSION['Nie_mozna_usunac']))
             {
-                echo '<div class="alert alert-danger">'.$_SESSION['BladUsuwania'].'</div>';
-                unset ($_SESSION['BladUsuwania']);
+                echo '<div class="alert alert-danger">'.$_SESSION['Nie_mozna_usunac'].'</div>';
+                unset ($_SESSION['Nie_mozna_usunac']);
+            }
+            if (isset($_SESSION['Done_usuniecie_czytelnika']))
+            {
+                echo '<div class="alert alert-success">'.$_SESSION['Done_usuniecie_czytelnika'].'</div>';
+                unset ($_SESSION['Done_usuniecie_czytelnika']);
+            }
+            if (isset($_SESSION['Done_kara']))
+            {
+                echo '<div class="alert alert-success">'.$_SESSION['Done_kara'].'</div>';
+                unset ($_SESSION['Done_kara']);
+            }
+            if (isset($_SESSION['Sukces_dodania_czytelnika']))
+            {
+                echo '<div class="alert alert-success">'.$_SESSION['Sukces_dodania_czytelnika'].'</div>';
+                unset ($_SESSION['Sukces_dodania_czytelnika']);
             }
             ?>
+            
         <table class="table table-bordered table-striped">
             <thead>
-            <tr>
+            <?php if (mysqli_num_rows($rezultat) > 0) { 
+                echo
+                "<tr>
                 <th>Imie</th>
                 <th>Nazwisko</th>
                 <th>Miasto</th>
@@ -109,7 +161,12 @@ include 'nav.php';
                 <th>Kara (zł)</th>
                 <th>Telefon</th>
                 <th>Dodaj/Usuń</th>
-            </tr>
+                </tr>";
+            }
+            else{
+                echo '<div class="alert alert-warning" style="margin-top:5%;">Brak zarejestrowanych czytelników w bibliotece</div>';
+            }
+            ?>
             </thead>
             <tbody id="myTable">
             <?php if (mysqli_num_rows($rezultat) > 0) { 
@@ -130,12 +187,12 @@ include 'nav.php';
                         <button type="submit" name="historia" class="btn btn-info btn-sm"  value="<?php echo $row['id_czytelnik']; ?>">
                             Historia
                         </button>          
-                        <button type="submit" name="zwrot" class="btn btn-success btn-sm"  value="<?php echo $row['id_czytelnik']; ?>">
-                            Zwróć/Potwierdz
-                        </button>      
-                       <!-- <button type="submit" name="id_czytelnik" class="btn btn-danger btn-sm"  value="<?php echo $row['id_czytelnik']; ?>">
+                        <button type="submit" name="usun" class="btn btn-danger btn-sm"  value="<?php echo $row['id_czytelnik']; ?>">
                             Usuń
-                        </button>-->
+                        </button>
+                        <button type="submit" name="pieniadze" class="btn btn-success btn-sm"  value="<?php echo $row['id_czytelnik']; ?>">
+                            Pieniądze
+                        </button>
                     </form>
                     </td>
             </tr>

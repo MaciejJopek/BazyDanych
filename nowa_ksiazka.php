@@ -11,6 +11,7 @@ require_once "connect.php";
 include_once 'sanityzacja.php';
 try{
     $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+    $polaczenie->query("SET NAMES 'utf8'");
     if($polaczenie->connect_errno!=0){
         throw new Exception(mysqli_connect_errno());
     }
@@ -39,7 +40,8 @@ if(isset($_POST['autor']) and isset($_POST['dodaj_ksiazke']))
                 mysqli_real_escape_string($polaczenie,$dzial)
                 )))
                 {
-                    $_SESSION['Sukces'] = '   Książka została pomyślnie dodana do biblioteki';
+                    $_SESSION['Sukcesy'] = 'Książka została pomyślnie dodana do biblioteki';
+                    header('Location:sprawdz_ksiazke.php');
                 }
                 else{
                     throw new Exception($polaczenie->error);
@@ -56,8 +58,6 @@ if(isset($_POST['dzial']) and isset($_POST['dodaj_dzial']))
         $wszystko_ok = true;
         $dzial = sanityzacja($_POST['dzial']);
 
-        //require_once "connect.php";
-        //mysqli_report(MYSQLI_REPORT_STRICT);
         try{
             $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
             if($polaczenie->connect_errno!=0){
@@ -75,6 +75,7 @@ if(isset($_POST['dzial']) and isset($_POST['dodaj_dzial']))
                         )))
                         {
                             unset($_SESSION['Blad']);
+                            echo "<meta http-equiv='refresh' content='0'>";
                         }
                     else{
                         throw new Exception($polaczenie->error);

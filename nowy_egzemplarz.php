@@ -6,23 +6,34 @@ if(!isset($_SESSION['zalogowany'])){
     exit();
 }
 include_once 'unsety.php';
-if(isset($_POST['tytul']))
+if(isset($_POST['wydawnictwo']))
 {
     $wszystko_ok = true;
     include 'sanityzacja.php';
-    $tytul = sanityzacja($_POST['tytul']);
     $wydawnictwo = sanityzacja($_POST['wydawnictwo']);
     $rok_wydania=sanityzacja($_POST['rok_wydania']);
     $strony=sanityzacja($_POST['liczba_stron']);
     $status='dostępne';
     $isbn = $_POST['isbn'];
+    $string=$isbn;
+    $wal = str_replace("-", "", $string);
     if(!ctype_digit((string)$rok_wydania)){
         $wszystko_ok = false;
-        $_SESSION['Blad'] = "Rok wydania może zawierać tylko cyfry";
+        $_SESSION['Blad_cyfry'] = "Rok wydania może zawierać tylko cyfry";
     }
     if(!ctype_digit((string)$strony) ){
         $wszystko_ok = false;
-        $_SESSION['Blad'] = "Liczba stron może zawierać tylko cyfry";
+        $_SESSION['Blad_cyfry'] = "Liczba stron może zawierać tylko cyfry";
+    }
+    if(!ctype_digit((string)$wal)){
+        $wszystko_ok = false;
+        $_SESSION['Blad_cyfry_isbn_2'] = "ISBN może zawierać tylko cyfry";
+
+    }
+    if ((strlen($wal)!=13 and strlen($wal)!=10 ))
+    {
+        $wszystko_ok = false;
+        $_SESSION['Blad_cyfry_isbn'] = "ISBN musi zawierać 10 lub 13 cyfr";
     }
     if($wszystko_ok==true)
     {
@@ -30,39 +41,28 @@ if(isset($_POST['tytul']))
         mysqli_report(MYSQLI_REPORT_STRICT);
         try{
             $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+            $polaczenie->query("SET NAMES 'utf8'");
             if($polaczenie->connect_errno!=0){
                 throw new Exception(mysqli_connect_errno());
             }
             else{
-                $rezultat = $polaczenie->query(
-                    sprintf("SELECT id_ksiazka FROM ksiazka WHERE tytul='$tytul'",
-                    mysqli_real_escape_string($polaczenie,$tytul)
-                ));
-                $walidacja = $rezultat->num_rows;
-                if ($walidacja>0)
-                {
-                    $wiersz = $rezultat -> fetch_assoc();
-                    $id_ksiazka = $wiersz['id_ksiazka'];
-                    if ($polaczenie->query(
-                        sprintf("INSERT INTO egzemplarz VALUES(NULL,'%s','%d','%d','%s','%d','%s')",
-                        mysqli_real_escape_string($polaczenie,$wydawnictwo),
-                        mysqli_real_escape_string($polaczenie,$rok_wydania),
-                        mysqli_real_escape_string($polaczenie,$id_ksiazka),
-                        mysqli_real_escape_string($polaczenie,$isbn),
-                        mysqli_real_escape_string($polaczenie,$strony),
-                        mysqli_real_escape_string($polaczenie,$status)
-                        ))){
-                            $_SESSION['Sukces']="Dodano egzemplarz do biblioteki.";
+                $id_ksiazka = sanityzacja($_SESSION['id_ksiazki']);
+                if ($polaczenie->query(
+                    sprintf("INSERT INTO egzemplarz VALUES(NULL,'%s','%d','%d','%s','%d','%s')",
+                    mysqli_real_escape_string($polaczenie,$wydawnictwo),
+                    mysqli_real_escape_string($polaczenie,$rok_wydania),
+                    mysqli_real_escape_string($polaczenie,$id_ksiazka),
+                    mysqli_real_escape_string($polaczenie,$isbn),
+                    mysqli_real_escape_string($polaczenie,$strony),
+                    mysqli_real_escape_string($polaczenie,$status)
+                    ))){
+                        $_SESSION['Done_nowy_egzemplarz'] = 'Nowy egzemplarz został dodany do biblioteki';
+                        header('Location:sprawdz_ksiazke.php');
                         }
                 }
-                else{
-                    $_SESSION['Blad']="W bibliotece nie znajduję się książka o podanym tytule,
-                    prosimy w pierwszej kolejności dodać książkę, a następnie nowy egzemplarz.";
-                }
+                $polaczenie->close();
             }
-            $polaczenie->close();
-
-        }
+        
         catch(Exception $error){
             $_SESSION['Blad']="Przepraszamy, występują chwilowe problemy z bazą danych.";
         }
@@ -93,23 +93,25 @@ include 'nav.php';
         <h2 class="naglowek" style="display: inline;">Dodaj nowy egzemplarz ksiązki do biblioteki</h2>
     </div>
     <?php
-        if (isset($_SESSION['Blad']))
+        if (isset($_SESSION['Blad_cyfry']))
         {
-        echo '<div class="alert alert-danger" style="text-align:center;margin-top:2%">'.$_SESSION['Blad'].'</div>';
-        unset ($_SESSION['Blad']);
+        echo '<div class="alert alert-danger" style="text-align:center;margin-top:2%">'.$_SESSION['Blad_cyfry'].'</div>';
+        unset ($_SESSION['Blad_cyfry']);
         }
-        if (isset($_SESSION['Sukces']))
+        if (isset($_SESSION['Blad_cyfry_isbn_2']))
         {
-        echo '<div class="alert alert-success" style="text-align:center;margin-top:2%">'.$_SESSION['Sukces'].'</div>';
-        unset ($_SESSION['Sukces']);
+        echo '<div class="alert alert-danger" style="text-align:center;margin-top:2%">'.$_SESSION['Blad_cyfry_isbn_2'].'</div>';
+        unset ($_SESSION['Blad_cyfry_isbn_2']);
         }
+        if (isset($_SESSION['Blad_cyfry_isbn_2']))
+        {
+        echo '<div class="alert alert-danger" style="text-align:center;margin-top:2%">'.$_SESSION['Blad_cyfry_isbn_2'].'</div>';
+        unset ($_SESSION['Blad_cyfry_isbn_2']);
+        }
+
     ?>
         <div class="wprowadzanie_danych" style="margin-top: 2%;">
             <form action=""  method="post">
-                <div class="form-group">
-                <label for="tytul">Tytuł:</label>
-                <input type="imie" class="form-control" id="tytul" placeholder="Podaj tytuł" name="tytul" required>
-                </div>
                 <div class="form-group">
                 <label for="wydawnictwo">Wydawnictwo:</label>
                 <input type="nazwisko" class="form-control" id="wydawnictwo" placeholder="Podaj nazwę wydawnictwa" name="wydawnictwo" required>

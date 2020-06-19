@@ -6,6 +6,7 @@ require_once "connect.php";
 mysqli_report(MYSQLI_REPORT_STRICT);
 try{
      $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+     $polaczenie->query("SET NAMES 'utf8'");
         if($polaczenie->connect_errno!=0){
             throw new Exception(mysqli_connect_errno());
         }
@@ -53,19 +54,33 @@ include 'nav_index.php';
         <div  id="naglowek_center">
             <h2 class="naglowek" style="display: inline;">Lista egzemplarzy</h2>
         </div>
+        <?php
+                    if (isset($_SESSION['zrobiono_wypoz']))
+                    {
+                        echo '<div style="margin-top:2%;text-align:center;" class="alert alert-success">'.$_SESSION['zrobiono_wypoz'].'</div>';
+                        unset ($_SESSION['zrobiono_wypoz']);
+                    }
+        ?>
         <table class="table table-bordered table-striped" style="margin-top:5%;">
             <thead>
-            <tr>
-                <th>Tytuł</th>
-                <th>Autor</th>
-                <th>Wydawnictwo</th>
-                <th>Rok wydania</th>
-                <th>ISBN</th>
-                <th>Liczba stron</th>
-                <th>Status</th>
-                <th>Akcja</th>
+            <?php if (mysqli_num_rows($rezultat) > 0) { 
+                echo "<tr>
+                        <th>Tytuł</th>
+                        <th>Autor</th>
+                        <th>Wydawnictwo</th>
+                        <th>Rok wydania</th>
+                        <th>ISBN</th>
+                        <th>Liczba stron</th>
+                        <th>Status</th>
+                        <th>Akcja</th>
 
-            </tr>
+                    </tr>";
+            }
+            else{
+                echo '<div class="alert alert-warning" style="margin-top:5%;">Przepraszamy, biblioteka nie posiada egzemplarzy wybranej
+                ksiażki</div>';
+            }
+            ?>
             <tbody id="myTable">
             <?php if (mysqli_num_rows($rezultat) > 0) { 
                 while($row = mysqli_fetch_assoc($rezultat)) { 

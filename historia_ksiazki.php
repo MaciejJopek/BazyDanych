@@ -11,6 +11,7 @@ mysqli_report(MYSQLI_REPORT_STRICT);
 
 try{
     $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+    $polaczenie->query("SET NAMES 'utf8'");
         if($polaczenie->connect_errno!=0){
             throw new Exception(mysqli_connect_errno());
         }
@@ -67,14 +68,20 @@ include 'nav.php';
             ?>
         <table class="table table-bordered table-striped">
             <thead>
-            <tr>
+            <?php if (mysqli_num_rows($rezultat) > 0) { 
+                echo "<tr>
                 <th>Imie</th>
                 <th>Nazwisko</th>
                 <th>Telefon</th>
                 <th>Data rezerwacji</th>
                 <th>Data wypożyczenia</th>
                 <th>Data zwrotu</th>
-            </tr>
+                </tr>";
+            }
+            else{
+                echo '<div class="alert alert-warning" style="margin-top:5%;">Egzemplarz nie był nigdy wypożyczony</div>';
+            }
+            ?>
             </thead>
             <tbody id="myTable">
             <?php if (mysqli_num_rows($rezultat) > 0) { 

@@ -62,7 +62,7 @@ if(isset($_POST['telefon'])){
                                 )))
                                 {
                                     $_SESSION['zrobiono_wypoz']="Zamowienie zostało złożone";
-                                    header('Location:lista_egzemplarzy.php');
+                                    header('Location:lista_egzemplarz_bibliotekarz.php');
                                 }
                             }
                         else{
@@ -105,7 +105,7 @@ if(isset($_POST['telefon'])){
 <?php
 ?>
 <?php 
-include 'nav_index.php';
+include 'nav.php';
 ?>
 <div class = "opakowanie">
     <div class="container">

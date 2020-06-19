@@ -6,17 +6,25 @@ require_once "connect.php";
 mysqli_report(MYSQLI_REPORT_STRICT);
 try{
      $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+     $polaczenie->query("SET NAMES 'utf8'");
         if($polaczenie->connect_errno!=0){
             throw new Exception(mysqli_connect_errno());
         }
         else{
             $zapytanie= $_SESSION['zapytanie'];
-            $rezultat = $polaczenie->query(
-            sprintf("SELECT id_ksiazka,tytul,autor,nazwa FROM ksiazka JOIN dzial ON dzial_id=id_dzial WHERE tytul ='%s' or autor ='*%s*' or nazwa ='*%s*';",
-            mysqli_real_escape_string($polaczenie,$zapytanie),
-            mysqli_real_escape_string($polaczenie,$zapytanie),
-            mysqli_real_escape_string($polaczenie,$zapytanie)
-        ));
+            if(empty($zapytanie))
+                {
+                    $rezultat = $polaczenie->query(
+                        sprintf("SELECT id_ksiazka,tytul,autor,nazwa FROM ksiazka JOIN dzial ON dzial_id=id_dzial;"
+                    ));
+                }
+            else{$rezultat = $polaczenie->query(
+                sprintf("SELECT id_ksiazka,tytul,autor,nazwa FROM ksiazka JOIN dzial ON dzial_id=id_dzial WHERE tytul ='%s' or autor ='%s' or nazwa ='%s';",
+                mysqli_real_escape_string($polaczenie,$zapytanie),
+                mysqli_real_escape_string($polaczenie,$zapytanie),
+                mysqli_real_escape_string($polaczenie,$zapytanie)
+            ));
+            }
             if(!$rezultat){
                 throw new Exception($polaczenie->error);
             }
@@ -55,15 +63,24 @@ include 'nav_index.php';
         <div  id="naglowek_center">
             <h2 class="naglowek" style="display: inline;">Wynik wyszukiwania</h2>
         </div>
+        <input class="form-control mb-4" id="tableSearch" type="text"
+            placeholder="Podaj tytuł, autora lub dział książki" style="margin-top:2%;" >
         <table class="table table-bordered table-striped" style="margin-top:5%;">
             <thead>
-            <tr>
+            <?php if (mysqli_num_rows($rezultat) > 0) { 
+                echo
+                "<tr>
                 <th>Tytuł</th>
                 <th>Autor</th>
                 <th>Dział</th>
-                <th>Szczegóły</th>
-
-            </tr>
+                <th>Akcja</th>
+                </tr>";
+            }
+            else{
+                echo '<div class="alert alert-warning" style="margin-top:5%;">Przepraszamy, biblioteka nie posiada książek pasujących do zapytania.
+                Wróć do strony głównej i spróbuj jeszcze raz</div>';
+            }
+            ?>
             <tbody id="myTable">
             <?php if (mysqli_num_rows($rezultat) > 0) { 
                 while($row = mysqli_fetch_assoc($rezultat)) { 
@@ -81,11 +98,7 @@ include 'nav_index.php';
                     </td>
             </tr>
             <?php }}
-            else{
-                $brak_egz = "Niestety, biblioteka nie posiada obecnie egzemplarza szukanej
-                książki";
-                echo '<div style="margin-top:2%; text-align:center" class="alert alert-warning">'.$brak_egz.'</div>';
-            }
+
             ?>
             </tbody>
             </thead>
@@ -95,5 +108,15 @@ include 'nav_index.php';
     include 'footer.php'
     ?>
 </div>
+<script>
+$(document).ready(function(){
+  $("#tableSearch").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $("#myTable tr").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+});
+</script>
 </body>
 </html>

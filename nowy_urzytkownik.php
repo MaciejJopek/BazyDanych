@@ -16,14 +16,10 @@ if(isset($_POST['telefon'])){
     $adres= sanityzacja($_POST['adres']);
     $telefon = sanityzacja($_POST['telefon']);
 
-    if(!ctype_digit((string)$telefon) or strlen($telefon)!=9){
+    if(!ctype_digit((string)$telefon)){
         $walidacja = false;
-        if (strlen($telefon)!=9){
-            $_SESSION['Blad'] = "Numer telefonu musi posiadac 9 cyfr";
-        }
-        else{
             $_SESSION['Blad'] = "Numer telefon może zawierać tylko cyfry";
-        }
+
     }
     if($walidacja==true)
     {
@@ -31,6 +27,7 @@ if(isset($_POST['telefon'])){
     mysqli_report(MYSQLI_REPORT_STRICT);
     try{
         $polaczenie = new mysqli($host,$db_user,$db_password,$db_name);
+        $polaczenie->query("SET NAMES 'utf8'");
         if($polaczenie->connect_errno!=0){
             throw new Exception(mysqli_connect_errno());
         }
@@ -45,7 +42,8 @@ if(isset($_POST['telefon'])){
                     mysqli_real_escape_string($polaczenie,$telefon)
                     )))
                     {
-                        $_SESSION['Sukces'] = 'Nowy użytkownik został dodany';
+                        $_SESSION['Sukces_dodania_czytelnika'] = 'Nowy użytkownik został dodany';
+                        header('Location:zarz_czytelnikami.php');
                     }
                 else{
                     throw new Exception($polaczenie->error);
@@ -97,11 +95,6 @@ include 'nav.php';
         {
         echo '<div class="alert alert-danger" style="text-align:center;margin-top:2%">'.$_SESSION['Blad'].'</div>';
         unset ($_SESSION['Blad']);
-        }
-        if (isset($_SESSION['Sukces']))
-        {
-        echo '<div class="alert alert-success" style="text-align:center;margin-top:2%">'.$_SESSION['Sukces'].'</div>';
-        unset ($_SESSION['Sukces']);
         }
     ?>
         <div class="wprowadzanie_danych">
